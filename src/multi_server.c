@@ -210,10 +210,10 @@ int main()
 
         }
 
-        printf("END Select\n");
+        /*printf("END Select\n");
         printf("ListSocket[0]: %d\n", list_socket[0]);
         printf("ListSocket[1]: %d\n", list_socket[1]);
-        printf("ListSocket[2]: %d\n", list_socket[2]);
+        printf("ListSocket[2]: %d\n", list_socket[2]);*/
 
         //conn_player2_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
