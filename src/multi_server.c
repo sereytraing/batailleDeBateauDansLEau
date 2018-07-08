@@ -126,6 +126,17 @@ int main()
 
     while(1)
     {
+        printf("LOOP While\n");
+        printf("Multi[0][0]: %d\n", multi[0][0]);
+        printf("Multi[1][0]: %d\n", multi[1][0]);
+
+        printf("Multi[0][1]: %d\n", multi[0][1]);
+        printf("Multi[1][1]: %d\n", multi[1][1]);
+
+        printf("Multi[0][2]: %d\n", multi[0][2]);
+        printf("Multi[1][2]: %d\n", multi[1][2]);
+
+
         int conn_player_fd = 0;
         if (select(FD_SETSIZE, &rdfs, NULL, NULL, NULL) > 0)
         {
@@ -134,65 +145,75 @@ int main()
           if (checkAlreadyConnection(conn_player_fd) == 0)
           {
             addConnection(conn_player_fd);
+          }
 
-            printf("ListSocket[0]: %d\n", list_socket[0]);
-            printf("ListSocket[1]: %d\n", list_socket[1]);
-            printf("ListSocket[2]: %d\n", list_socket[2]);
+          //Premiere discussion du client avec le serveur
+          //Reinitialise str
 
-            //Premiere discussion du client avec le serveur
-            //Reinitialise str
+          write(conn_player_fd, "Choose a party plz.\n", strlen("Choose a party plz.") + 1);
+
+
+          int isInMenu = 0;
+          while (isInMenu == 0)
+          {
             bzero(str_player1, 100);
-
-            write(conn_player_fd, "Choose a party plz.\n", strlen("Choose a party plz.") + 1);
             read(conn_player_fd, str_player1, 100);
 
             printf("Player choose party: %s\n", str_player1);
             int numParty = atoi(str_player1) - 1;
 
-            int isInMenu = 0;
-            while (isInMenu == 0)
+            if (numParty >= 0 && numParty < maxPartyServeur)
             {
-              if (numParty >= 0 && numParty < maxPartyServeur)
+              //Connection des client vers les salles de partie
+              if (multi[0][numParty] == 0)
               {
-                //Connection des client vers les salles de partie
-                if (multi[0][numParty] == 0)
-                  multi[0][numParty] = conn_player_fd;
-                else if(multi[1][numParty] == 0)
-                  multi[1][numParty] = conn_player_fd;
-                else
-                {
-                  printf("Error: PARTY FULL\n");
-
-                  write(conn_player_fd, "Party full. Please choose another party.\n", strlen("Party full. Please choose another party.") + 1);
-                  break;
-                }
-
-                if (isPartyFull(numParty) == 1)
-                {
-                  //TO DO Si la salle contient 2 joueurs => lancement d'un thread du jeux
-                  printf("GAME START\n");
-                }
-
+                multi[0][numParty] = conn_player_fd;
+                isInMenu = 1;
+              }
+              else if(multi[1][numParty] == 0)
+              {
+                multi[1][numParty] = conn_player_fd;
                 isInMenu = 1;
               }
               else
               {
-                printf("Error the party is full, please select another party\n");
+                printf("Error: PARTY FULL\n");
+
+                write(conn_player_fd, "Party full. Please choose another party.\n", strlen("Party full. Please choose another party.") + 1);
               }
+
+              if (isPartyFull(numParty) == 1)
+              {
+                //TO DO Si la salle contient 2 joueurs => lancement d'un thread du jeux
+
+                // Les FileDescriptor des clients sont dans multi[][]
+                // TO DO: effacer les filedescriptor de multi
+                printf("GAME START\n");
+
+                multi[0][numParty] = 0;
+                multi[1][numParty] = 0;
+              }
+              else
+              {
+                write(conn_player_fd, "Waiting for another player.\n", strlen("Waiting for another player.") + 1);
+              }
+
             }
-
+            else
+            {
+              printf("Error this party doesn't exist\n");
+              write(conn_player_fd, "Error this party doesn't exist, please select another party.\n", strlen("Error this party doesn't exist, please select another party.") + 1);
+            }
           }
-          printf("Multi[0][0]: %d\n", multi[0][0]);
-          printf("Multi[1][0]: %d\n", multi[1][0]);
 
-          printf("Multi[0][1]: %d\n", multi[0][1]);
-          printf("Multi[1][1]: %d\n", multi[1][1]);
-
-          printf("Multi[0][2]: %d\n", multi[0][2]);
-          printf("Multi[1][2]: %d\n", multi[1][2]);
 
 
         }
+
+        printf("END Select\n");
+        printf("ListSocket[0]: %d\n", list_socket[0]);
+        printf("ListSocket[1]: %d\n", list_socket[1]);
+        printf("ListSocket[2]: %d\n", list_socket[2]);
 
         //conn_player2_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
