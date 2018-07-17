@@ -29,7 +29,7 @@ int main(int argc,char **argv)
     servaddr.sin_port=htons(8088);
 
     //TO Set ip address
-    inet_pton(AF_INET,"192.168.0.35",&(servaddr.sin_addr));
+    inet_pton(AF_INET,"127.0.0.1",&(servaddr.sin_addr));
 
     connect(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
 
@@ -38,13 +38,16 @@ int main(int argc,char **argv)
         bzero( sendline, 100);
         bzero( recvline, 100);
 
-        read(sockfd,recvline,100);
-        printf("Server say: %s\n",recvline);
+        if (read(sockfd,recvline,100) != -1) {
+          printf("Server say: %s\n",recvline);
+        }
 
-        fgets(sendline,100,stdin); /*stdin pour l'input standard*/
-        write(sockfd,sendline,strlen(sendline)+1);
-
-
+        //Si le message contient OPT- c'est que le serveur attend un output de la part du client
+        if (strstr(recvline, "OTP-") != NULL) {
+          printf("%s", "Waiting for input: ");
+          fgets(sendline,100,stdin); /*stdin pour l'input standard*/
+          write(sockfd,sendline,strlen(sendline)+1);
+        }
     }
 
 }
